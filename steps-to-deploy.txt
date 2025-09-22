@@ -8,7 +8,7 @@ containerlab -t topo.yaml deploy
 docker run -d \
   --name clab-ui \
   -p 50080:50080 \
-  -v /home/vicky/Vicky/Cilium/BGP_on_Cilium/topo.yaml:/topo.yaml \
+  -v $(pwd)/topo.yaml:/topo.yaml \
   -v /var/run/docker.sock:/var/run/docker.sock \
   ghcr.io/srl-labs/clab:0.59.0 \
   containerlab graph -t /topo.yaml

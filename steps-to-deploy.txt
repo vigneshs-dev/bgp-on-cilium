@@ -4,6 +4,16 @@ kind create cluster --config cluster.yaml
 # Deploy Container Lab
 containerlab -t topo.yaml deploy
 
+# Command to run ContainerLab Graph
+docker run -d \
+  --name clab-ui \
+  -p 50080:50080 \
+  -v /home/vicky/Vicky/Cilium/BGP_on_Cilium/topo.yaml:/topo.yaml \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  ghcr.io/srl-labs/clab:0.59.0 \
+  containerlab graph -t /topo.yaml
+
+
 # Verify connectivity
 docker exec -it clab-bgp-topo-router0 vtysh -c 'show bgp ipv4 summary wide'
 

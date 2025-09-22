@@ -30,6 +30,9 @@ cilium install \
     --set bgpControlPlane.enabled=true \
     --set k8s.requireIPv4PodCIDR=true
 
+cilium config view | grep enable-bgp
+
+kubectl get nodes -l 'rack in (rack0,rack1)'
 
 # Apply Policies
 kubectl apply -f cilium-bgp-peering-policies.yaml
@@ -39,3 +42,4 @@ kubectl rollout status ds/netshoot -w
 
 SRC_POD=$(kubectl get pods -o wide | grep "kind-worker " | awk '{ print($1); }')
 DST_IP=$(kubectl get pods -o wide | grep worker3 | awk '{ print($6); }')
+kubectl exec -it $SRC_POD -- ping $DST_IP

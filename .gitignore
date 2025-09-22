@@ -1,0 +1,32 @@
+# ContainerLab files
+clab-*
+.clab*
+
+# Kubernetes temporary files
+*.swp
+*~
+.DS_Store
+.idea/
+.vscode/
+
+# Log files
+*.log
+
+# Environment files
+.env
+.env.*
+
+# Binary files
+bin/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Container/Docker files
+*.tar
+*.gz
+
+# Temporary files
+tmp/
+temp/

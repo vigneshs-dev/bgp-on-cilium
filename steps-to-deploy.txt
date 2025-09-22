@@ -1,0 +1,31 @@
+# Deploy Kind cluster
+kind create cluster --config cluster.yaml
+
+# Deploy Container Lab
+containerlab -t topo.yaml deploy
+
+# Verify connectivity
+docker exec -it clab-bgp-topo-router0 vtysh -c 'show bgp ipv4 summary wide'
+
+docker exec -it clab-bgp-topo-tor0 vtysh -c 'show bgp ipv4 summary wide'
+docker exec -it clab-bgp-topo-tor1 vtysh -c 'show bgp ipv4 summary wide'
+
+# Cilium install command
+
+cilium install \
+    --version v1.17.4 \
+    --set ipam.mode=kubernetes \
+    --set routingMode=native \
+    --set ipv4NativeRoutingCIDR="10.0.0.0/8" \
+    --set bgpControlPlane.enabled=true \
+    --set k8s.requireIPv4PodCIDR=true
+
+
+# Apply Policies
+kubectl apply -f cilium-bgp-peering-policies.yaml
+
+kubectl apply -f netshoot-ds.yaml
+kubectl rollout status ds/netshoot -w
+
+SRC_POD=$(kubectl get pods -o wide | grep "kind-worker " | awk '{ print($1); }')
+DST_IP=$(kubectl get pods -o wide | grep worker3 | awk '{ print($6); }')

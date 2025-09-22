@@ -21,9 +21,9 @@ graph TB
     TOR1 --- W2
     TOR1 --- W3
 
-    classDef router fill:#f9f,stroke:#333,stroke-width:2px;
-    classDef tor fill:#bbf,stroke:#333,stroke-width:2px;
-    classDef node fill:#bfb,stroke:#333,stroke-width:2px;
+    classDef router fill:#FF9E64,stroke:#1F1F1F,stroke-width:2px,color:#1F1F1F;
+    classDef tor fill:#7AA2F7,stroke:#1F1F1F,stroke-width:2px,color:#1F1F1F;
+    classDef node fill:#9ECE6A,stroke:#1F1F1F,stroke-width:2px,color:#1F1F1F;
     
     class Router router;
     class TOR0,TOR1 tor;

@@ -1,4 +1,4 @@
-.PHONY: all deploy-kind deploy-clab deploy-clab-ui check-connectivity install-cilium deploy-policies test-connectivity clean destroy-all check-kind check-clab check-clab-ui check-cilium
+.PHONY: all deploy-kind deploy-clab deploy-clab-ui check-connectivity install-cilium deploy-policies test-connectivity clean destroy-all check-kind check-clab check-clab-ui check-cilium lint-learn-demo deploy-learn-demo delete-learn-demo test-learn-demo
 
 # Utility targets for checking status
 check-kind:
@@ -110,6 +110,38 @@ deploy-policies:
 	kubectl apply -f netshoot-ds.yaml
 	kubectl rollout status ds/netshoot -w
 
+lint-learn-demo:
+	@echo "Linting learn-cilium-demo.yaml..."
+	@yamllint learn-cilium-demo.yaml || true
+
+deploy-learn-demo:
+	@echo "Applying learn-cilium-demo.yaml to the cluster..."
+	@kubectl apply -f learn-cilium-demo.yaml
+
+delete-learn-demo:
+	@echo "Deleting learn-cilium-demo resources..."
+	@kubectl delete -f learn-cilium-demo.yaml --ignore-not-found
+
+test-learn-demo:
+	@echo "Testing learn-cilium-demo nginx deployment and service..."
+	@if ! kubectl get ns cilium-demo >/dev/null 2>&1; then \
+		echo "Namespace 'cilium-demo' not found. Run 'make deploy-learn-demo' first."; \
+		exit 1; \
+	fi
+	@echo "Waiting for deployment to be available..."
+	@kubectl -n cilium-demo rollout status deployment/nginx-demo --timeout=120s
+	@echo "Listing pods in cilium-demo:";
+	@kubectl -n cilium-demo get pods -l app=nginx-demo -o wide
+	@echo "Running ephemeral curl pod to query the nginx service..."
+	@kubectl -n cilium-demo run --rm -i --restart=Never learn-test-curl --image=curlimages/curl --command -- curl --fail --max-time 10 http://nginx-demo:80 || { \
+		echo "HTTP check failed - gathering debug info:"; \
+		echo "- Service:"; kubectl -n cilium-demo get svc nginx-demo -o wide || true; \
+		echo "- Endpoints:"; kubectl -n cilium-demo get endpoints nginx-demo -o yaml || true; \
+		echo "- Pods:"; kubectl -n cilium-demo get pods -o wide || true; \
+		echo "- Describe pods:"; kubectl -n cilium-demo describe pods -l app=nginx-demo || true; \
+		exit 1; \
+	}
+
 test-connectivity:
 	@echo "Waiting for pods to be ready..."
 	@kubectl wait --for=condition=ready pods --all --timeout=300s
@@ -156,4 +188,7 @@ help:
 	@echo "  test-connectivity - Test pod connectivity"
 	@echo "  clean            - Delete Kind cluster and stop UI"
 	@echo "  destroy-all      - Clean everything including ContainerLab topology"
+	@echo "  lint-learn-demo  - Lint the learn-cilium-demo.yaml manifest"
+	@echo "  deploy-learn-demo - Apply the learn-cilium-demo.yaml manifest"
+	@echo "  delete-learn-demo - Delete resources from learn-cilium-demo.yaml"
 	@echo "  help             - Show this help message"
